@@ -69,7 +69,7 @@ export default function GameCard({ game, onJoin, onView, account }) {
       <div style={{ display:'flex', gap:8 }} onClick={e => e.stopPropagation()}>
         {game.status === 'WAITING' && (
           <button className="btn btn-blue" style={{ fontSize:11, padding:'7px 16px' }} onClick={() => onJoin(game.id)}>
-            Join — 50 pts
+            Join FREE
           </button>
         )}
         <button className="btn btn-outline" style={{ fontSize:11, padding:'7px 14px' }} onClick={() => onView(game.id)}>

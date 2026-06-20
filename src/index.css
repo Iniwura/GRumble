@@ -15,17 +15,17 @@
   --gold:   #F59E0B;
 
   /* Surfaces */
-  --bg:     #04040F;
-  --bg2:    #0A0A1E;
-  --card:   #0D0D22;
-  --card2:  #121228;
-  --border: rgba(17,15,255,.12);
-  --border2:rgba(17,15,255,.2);
+  --bg:     #0C0C1E;
+  --bg2:    #131328;
+  --card:   #161636;
+  --card2:  #1A1A3A;
+  --border: rgba(17,15,255,.18);
+  --border2:rgba(17,15,255,.28);
 
   /* Text */
   --text:   #F0EEFF;
   --text2:  #8080C0;
-  --muted:  #404080;
+  --muted:  #5858A0;
 
   /* Typography — Switzer closest via system fonts, fallback to Inter */
   --font:  'Switzer', 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -44,17 +44,23 @@ html, body, #root {
   line-height: 1.6;
 }
 
-/* Gradient mesh background — GenLayer brand blue tones */
+/* Animated battle background */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 900px 700px at 50% 0%, rgba(17,15,255,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 500px 400px at 10% 80%, rgba(40,43,93,.4) 0%, transparent 60%),
-    radial-gradient(ellipse 400px 300px at 90% 60%, rgba(188,162,255,.05) 0%, transparent 60%);
-  animation: mesh 20s ease-in-out infinite alternate;
+    radial-gradient(ellipse 900px 700px at 50% 0%,  rgba(17,15,255,.1)  0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 10% 80%, rgba(40,43,93,.5)   0%, transparent 60%),
+    radial-gradient(ellipse 500px 400px at 90% 60%, rgba(188,162,255,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(17,15,255,.04) 0%, transparent 70%);
+  animation: mesh 18s ease-in-out infinite alternate;
 }
-@keyframes mesh { 0%{transform:translate(0,0)} 100%{transform:translate(10px,-15px)} }
+@keyframes mesh { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(15px,-10px) scale(1.02)} 100%{transform:translate(-8px,12px) scale(.99)} }
+
+/* Explosion ring canvas overlay — injected by JS */
+#explosion-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .35;
+}
 
 /* Grid */
 body::after {
@@ -117,3 +123,22 @@ body::after {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── Shockwave rings ── */
+@keyframes ring-expand {
+  0%   { transform: scale(0);   opacity: .6; }
+  60%  { opacity: .3; }
+  100% { transform: scale(4.5); opacity: 0; }
+}
+@keyframes ring-expand2 {
+  0%   { transform: scale(0);   opacity: .4; }
+  100% { transform: scale(6);   opacity: 0; }
+}
+.war-ring {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  border: 1.5px solid rgba(17,15,255,.5);
+  animation: ring-expand 6s ease-out infinite;
+}
+.war-ring:nth-child(2) { animation: ring-expand  6s ease-out 2s  infinite; border-color: rgba(188,162,255,.4); }
+.war-ring:nth-child(3) { animation: ring-expand2 8s ease-out 4s  infinite; border-color: rgba(17,15,255,.25); }
+.war-ring:nth-child(4) { animation: ring-expand  7s ease-out 1s  infinite; border-color: rgba(188,162,255,.2); }
