@@ -17,7 +17,7 @@ export default function Profile({ account, onClose, onNotify }) {
   async function loadProfile() {
     setLoading(true)
     try {
-      const raw = await readContract(CONTRACT_ADDR, 'get_profile', [account])
+      const raw = await readContract(CONTRACT_ADDR, 'get_profile', [account], true)
       if (raw && raw !== 'NOT_FOUND') {
         const p = JSON.parse(raw)
         setProfile(p)
@@ -32,7 +32,7 @@ export default function Profile({ account, onClose, onNotify }) {
     if (name === profile?.username) { setAvail(true); return }
     setChecking(true)
     try {
-      const res = await readContract(CONTRACT_ADDR, 'check_username', [name])
+      const res = await readContract(CONTRACT_ADDR, 'check_username', [name], true)
       setAvail(res === 'AVAILABLE')
     } catch { setAvail(null) }
     finally { setChecking(false) }

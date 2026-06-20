@@ -30,7 +30,7 @@ export default function CreateProfile({ account, onCreated, onNotify }) {
     if (name.length < 2) { setAvailable(null); return }
     setChecking(true)
     try {
-      const res = await readContract(CONTRACT_ADDR, 'check_username', [name])
+      const res = await readContract(CONTRACT_ADDR, 'check_username', [name], true)
       setAvailable(res === 'AVAILABLE')
     } catch { setAvailable(null) }
     finally { setChecking(false) }

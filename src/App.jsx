@@ -63,7 +63,7 @@ export default function App() {
   const loadGames = useCallback(async () => {
     if (!CONTRACT_ADDR) { setLoading(false); return }
     try {
-      const raw = await readContract(CONTRACT_ADDR, 'get_all_games', [])
+      const raw = await readContract(CONTRACT_ADDR, 'get_all_games', [], true)
       setGames(raw && raw !== '[]' ? JSON.parse(raw).reverse() : [])
     } catch(e) { notify(e.message, 'err') }
     finally { setLoading(false) }
@@ -78,7 +78,7 @@ export default function App() {
 
   const loadLeaderboard = async () => {
     try {
-      const raw = await readContract(CONTRACT_ADDR, 'get_leaderboard', [])
+      const raw = await readContract(CONTRACT_ADDR, 'get_leaderboard', [], true)
       if (raw && raw !== '[]') setLeaderboard(JSON.parse(raw))
     } catch(e) {}
   }

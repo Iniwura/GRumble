@@ -97,34 +97,70 @@ async function rpcPost(method, params = []) {
   return d.result
 }
 
-export async function readContract(contractAddr, method, args = []) {
+// Simple in-memory cache for read calls (60s TTL)
+const _readCache = new Map()
+const _CACHE_TTL = 60_000
+
+export async function readContract(contractAddr, method, args = [], useCache = false) {
+  const cacheKey = `${contractAddr}:${method}:${JSON.stringify(args)}`
+
+  // Return cached result if fresh
+  if (useCache) {
+    const cached = _readCache.get(cacheKey)
+    if (cached && Date.now() - cached.ts < _CACHE_TTL) return cached.val
+  }
+
   const from = window._glAccount || '0x0000000000000000000000000000000000000000'
   const data = encodeCalldata(method, args, false)
-  const result = await rpcPost('gen_call', [{
-    to: contractAddr, from, Data: data, Type: 'read', gas: '0x7A120', value: '0x0',
-  }])
-  if (!result) return ''
-  const raw = typeof result === 'string' ? result
-    : result.data || result.output || result.result || ''
-  if (!raw) return ''
-  const hex = raw.startsWith('0x') ? raw.slice(2) : raw
-  try {
-    const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)))
-    let pos = 0, varint = 0, shift = 0
-    while (pos < bytes.length) {
-      const b = bytes[pos++]
-      varint |= (b & 0x7f) << shift
-      shift += 7
-      if (!(b & 0x80)) break
+
+  // Retry with exponential backoff on rate limit errors
+  let lastErr
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) {
+      const delay = Math.min(1000 * 2 ** attempt, 8000) + Math.random() * 500
+      await new Promise(r => setTimeout(r, delay))
     }
-    const typ = varint & 7
-    const len = varint >> 3
-    if (typ === 4 && pos + len <= bytes.length)
-      return new TextDecoder().decode(bytes.slice(pos, pos + len))
-    return new TextDecoder().decode(bytes)
-  } catch {
-    return String(raw)
+    try {
+      const result = await rpcPost('gen_call', [{
+        to: contractAddr, from, Data: data, Type: 'read', gas: '0x7A120', value: '0x0',
+      }])
+      if (!result) return ''
+      const raw = typeof result === 'string' ? result
+        : result.data || result.output || result.result || ''
+      if (!raw) return ''
+      const hex = raw.startsWith('0x') ? raw.slice(2) : raw
+      let decoded = ''
+      try {
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)))
+        let pos = 0, varint = 0, shift = 0
+        while (pos < bytes.length) {
+          const b = bytes[pos++]
+          varint |= (b & 0x7f) << shift
+          shift += 7
+          if (!(b & 0x80)) break
+        }
+        const typ = varint & 7
+        const len = varint >> 3
+        decoded = (typ === 4 && pos + len <= bytes.length)
+          ? new TextDecoder().decode(bytes.slice(pos, pos + len))
+          : new TextDecoder().decode(bytes)
+      } catch {
+        decoded = String(raw)
+      }
+      // Cache the result
+      if (useCache) _readCache.set(cacheKey, { val: decoded, ts: Date.now() })
+      return decoded
+    } catch(e) {
+      lastErr = e
+      const msg = (e.message || '').toLowerCase()
+      if (msg.includes('rate limit') || msg.includes('429') || msg.includes('too many')) {
+        console.warn(`gen_call rate limited, retrying in ${attempt + 1}s...`)
+        continue
+      }
+      throw e // non-rate-limit errors throw immediately
+    }
   }
+  throw lastErr
 }
 
 export async function writeContract(contractAddr, account, method, args = [], valueWei = 0n) {
