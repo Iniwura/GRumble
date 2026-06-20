@@ -195,7 +195,7 @@ export default function App() {
     : []
 
   return (
-    <div style={{ position:'relative', zIndex:1, minHeight:'100vh' }}>
+    <div style={{ position:'relative', zIndex:2, minHeight:'100vh' }}>
       {/* HEADER */}
       <header style={{ position:'sticky',top:0,zIndex:100,height:58,display:'flex',alignItems:'center',gap:14,padding:'0 clamp(1rem,4vw,2.5rem)',background:'rgba(4,4,15,.92)',backdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)' }}>
         <div style={{ display:'flex',alignItems:'center',gap:10,cursor:'pointer' }} onClick={() => setView('lobby')}>

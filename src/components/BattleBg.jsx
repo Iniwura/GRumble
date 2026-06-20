@@ -16,112 +16,93 @@ export default function BattleBg() {
     window.addEventListener('resize', resize)
     resize()
 
-    // Falling debris particles — ash and embers from battle
-    const debris = Array.from({ length: 55 }, () => spawnDebris(true))
+    // Falling ash + embers
+    const debris = Array.from({ length: 80 }, () => makeDebris(true))
 
-    function spawnDebris(random = false) {
+    function makeDebris(scatter = false) {
       return {
-        x:     Math.random() * W,
-        y:     random ? Math.random() * H : -10,
-        size:  Math.random() * 2.2 + 0.5,
-        speedY: Math.random() * 0.6 + 0.2,
-        speedX: (Math.random() - 0.5) * 0.3,
-        alpha:  Math.random() * 0.4 + 0.1,
+        x:      Math.random() * W,
+        y:      scatter ? Math.random() * H : -8,
+        size:   Math.random() * 2.5 + 0.8,
+        vy:     Math.random() * 0.7 + 0.25,
+        vx:     (Math.random() - 0.5) * 0.4,
+        alpha:  Math.random() * 0.55 + 0.2,
         sway:   Math.random() * Math.PI * 2,
-        swaySpeed: Math.random() * 0.015 + 0.005,
-        ember:  Math.random() > 0.75, // glowing ember vs ash
+        ss:     Math.random() * 0.018 + 0.005,
+        ember:  Math.random() > 0.6,
       }
     }
 
-    // Distant explosions — slow, large, very faint
-    const explosions = []
-    function spawnExplosion() {
-      explosions.push({
-        x:      Math.random() * W,
-        y:      H * 0.3 + Math.random() * H * 0.4,
-        r:      0,
-        maxR:   Math.random() * 60 + 30,
-        speed:  Math.random() * 0.4 + 0.2,
-        alpha:  0.25,
-        rings:  Math.floor(Math.random() * 2) + 1,
+    // Explosion rings
+    const expl = []
+    function addExplosion() {
+      expl.push({
+        x:    W * 0.1 + Math.random() * W * 0.8,
+        y:    H * 0.15 + Math.random() * H * 0.5,
+        r:    0,
+        max:  Math.random() * 90 + 40,
+        spd:  Math.random() * 0.5 + 0.25,
+        a:    0.45,
       })
     }
-    spawnExplosion()
-
-    // Scan lines — subtle horizontal light streaks
-    const scanLines = Array.from({ length: 3 }, () => ({
-      y:     Math.random() * H,
-      speed: Math.random() * 0.3 + 0.1,
-      alpha: Math.random() * 0.04 + 0.01,
-      width: Math.random() * 200 + 100,
-    }))
+    addExplosion(); addExplosion()
 
     function draw() {
       ctx.clearRect(0, 0, W, H)
 
-      // ── Distant explosions ────────────────────────────────
-      for (let i = explosions.length - 1; i >= 0; i--) {
-        const e = explosions[i]
-        e.r    += e.speed
-        e.alpha = Math.max(0, 0.25 * (1 - e.r / e.maxR))
-        if (e.alpha <= 0) { explosions.splice(i, 1); continue }
+      // Explosion rings
+      for (let i = expl.length - 1; i >= 0; i--) {
+        const e = expl[i]
+        e.r += e.spd
+        e.a  = Math.max(0, 0.45 * (1 - e.r / e.max))
+        if (e.a <= 0) { expl.splice(i, 1); continue }
 
-        for (let ring = 0; ring < e.rings; ring++) {
-          const rr = e.r * (1 - ring * 0.3)
-          ctx.beginPath()
-          ctx.arc(e.x, e.y, rr, 0, Math.PI * 2)
-          ctx.strokeStyle = `rgba(110,100,255,${e.alpha * (1 - ring * 0.4)})`
-          ctx.lineWidth   = 1
-          ctx.stroke()
-        }
+        ctx.beginPath()
+        ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(130,110,255,${e.a})`
+        ctx.lineWidth   = 1.5
+        ctx.stroke()
 
-        // Soft glow at centre
-        if (e.r < e.maxR * 0.4) {
-          const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r)
-          g.addColorStop(0, `rgba(180,160,255,${e.alpha * 0.3})`)
+        // Inner glow
+        if (e.r < e.max * 0.5) {
+          const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 0.8)
+          g.addColorStop(0, `rgba(200,180,255,${e.a * 0.25})`)
           g.addColorStop(1, 'rgba(0,0,0,0)')
           ctx.beginPath()
-          ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
+          ctx.arc(e.x, e.y, e.r * 0.8, 0, Math.PI * 2)
           ctx.fillStyle = g
           ctx.fill()
         }
       }
 
-      // ── Falling debris ────────────────────────────────────
+      // Debris
       debris.forEach(d => {
-        d.sway   += d.swaySpeed
-        d.x      += d.speedX + Math.sin(d.sway) * 0.3
-        d.y      += d.speedY
-
-        if (d.y > H + 10) Object.assign(d, spawnDebris())
+        d.sway += d.ss
+        d.x    += d.vx + Math.sin(d.sway) * 0.4
+        d.y    += d.vy
+        if (d.y > H + 10) Object.assign(d, makeDebris())
+        if (d.x < -10)    d.x = W + 5
+        if (d.x > W + 10) d.x = -5
 
         if (d.ember) {
-          // Glowing ember — warm blue/violet dot
           ctx.beginPath()
           ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(150,130,255,${d.alpha})`
+          ctx.fillStyle = `rgba(160,140,255,${d.alpha})`
           ctx.fill()
+          // tiny glow ring on ember
+          ctx.beginPath()
+          ctx.arc(d.x, d.y, d.size + 1.5, 0, Math.PI * 2)
+          ctx.strokeStyle = `rgba(160,140,255,${d.alpha * 0.3})`
+          ctx.lineWidth = 1
+          ctx.stroke()
         } else {
-          // Ash flake — tiny rectangle
-          ctx.fillStyle = `rgba(180,180,220,${d.alpha * 0.6})`
-          ctx.fillRect(d.x, d.y, d.size * 0.8, d.size * 1.5)
+          ctx.fillStyle = `rgba(200,190,240,${d.alpha * 0.7})`
+          ctx.fillRect(d.x, d.y, d.size * 0.7, d.size * 2)
         }
       })
 
-      // ── Subtle scan lines ─────────────────────────────────
-      scanLines.forEach(sl => {
-        sl.y += sl.speed
-        if (sl.y > H) sl.y = -20
-        const g = ctx.createLinearGradient(0, sl.y, sl.width, sl.y)
-        g.addColorStop(0, 'rgba(0,0,0,0)')
-        g.addColorStop(0.5, `rgba(180,160,255,${sl.alpha})`)
-        g.addColorStop(1, 'rgba(0,0,0,0)')
-        ctx.fillStyle = g
-        ctx.fillRect(0, sl.y, sl.width, 1)
-      })
-
       frame++
-      if (frame % 150 === 0) spawnExplosion()
+      if (frame % 120 === 0) addExplosion()
 
       animId = requestAnimationFrame(draw)
     }
@@ -134,9 +115,15 @@ export default function BattleBg() {
   }, [])
 
   return (
-    <canvas ref={ref} style={{
-      position: 'fixed', inset: 0, zIndex: -1,
-      pointerEvents: 'none', opacity: 0.6,
-    }} />
+    <canvas
+      ref={ref}
+      style={{
+        position:      'fixed',
+        inset:         0,
+        zIndex:        0,         // above body bg, below all content
+        pointerEvents: 'none',
+        opacity:       0.55,
+      }}
+    />
   )
 }
