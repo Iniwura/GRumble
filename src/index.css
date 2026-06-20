@@ -15,17 +15,17 @@
   --gold:   #F59E0B;
 
   /* Surfaces */
-  --bg:     #0C0C1E;
-  --bg2:    #131328;
-  --card:   #161636;
-  --card2:  #1A1A3A;
-  --border: rgba(17,15,255,.18);
-  --border2:rgba(17,15,255,.28);
+  --bg:     #14142A;
+  --bg2:    #1C1C38;
+  --card:   #1E1E40;
+  --card2:  #242450;
+  --border: rgba(100,100,255,.22);
+  --border2:rgba(100,100,255,.32);
 
   /* Text */
   --text:   #F0EEFF;
-  --text2:  #8080C0;
-  --muted:  #5858A0;
+  --text2:  #A0A0D8;
+  --muted:  #7070B8;
 
   /* Typography — Switzer closest via system fonts, fallback to Inter */
   --font:  'Switzer', 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -49,10 +49,10 @@ body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 900px 700px at 50% 0%,  rgba(17,15,255,.1)  0%, transparent 60%),
-    radial-gradient(ellipse 600px 500px at 10% 80%, rgba(40,43,93,.5)   0%, transparent 60%),
-    radial-gradient(ellipse 500px 400px at 90% 60%, rgba(188,162,255,.07) 0%, transparent 60%),
-    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(17,15,255,.04) 0%, transparent 70%);
+    radial-gradient(ellipse 900px 700px at 50% 0%,  rgba(17,15,255,.15) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 10% 80%, rgba(60,63,130,.5)   0%, transparent 60%),
+    radial-gradient(ellipse 500px 400px at 90% 60%, rgba(188,162,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(17,15,255,.08) 0%, transparent 70%);
   animation: mesh 18s ease-in-out infinite alternate;
 }
 @keyframes mesh { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(15px,-10px) scale(1.02)} 100%{transform:translate(-8px,12px) scale(.99)} }

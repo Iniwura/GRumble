@@ -7,9 +7,7 @@ export default function BattleBg() {
     const canvas = ref.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
-
-    let W, H, particles = [], rings = [], frame = 0
-    let animId
+    let W, H, animId, frame = 0
 
     function resize() {
       W = canvas.width  = window.innerWidth
@@ -18,82 +16,117 @@ export default function BattleBg() {
     window.addEventListener('resize', resize)
     resize()
 
-    // Spawn a shockwave ring from centre
-    function spawnRing() {
-      rings.push({
-        x: W / 2 + (Math.random() - .5) * W * .3,
-        y: H / 2 + (Math.random() - .5) * H * .3,
-        r: 0,
-        maxR: Math.random() * 280 + 120,
-        speed: Math.random() * .8 + .4,
-        alpha: .5,
-        color: Math.random() > .5
-          ? `17,15,255`    // GenLayer blue
-          : `188,162,255`, // lavender
-        width: Math.random() * 1.5 + .5,
-      })
+    // Falling debris particles — ash and embers from battle
+    const debris = Array.from({ length: 55 }, () => spawnDebris(true))
+
+    function spawnDebris(random = false) {
+      return {
+        x:     Math.random() * W,
+        y:     random ? Math.random() * H : -10,
+        size:  Math.random() * 2.2 + 0.5,
+        speedY: Math.random() * 0.6 + 0.2,
+        speedX: (Math.random() - 0.5) * 0.3,
+        alpha:  Math.random() * 0.4 + 0.1,
+        sway:   Math.random() * Math.PI * 2,
+        swaySpeed: Math.random() * 0.015 + 0.005,
+        ember:  Math.random() > 0.75, // glowing ember vs ash
+      }
     }
 
-    // Spawn ember / debris particle
-    function spawnParticle() {
-      const angle = Math.random() * Math.PI * 2
-      const speed = Math.random() * .6 + .1
-      particles.push({
-        x: W / 2 + (Math.random() - .5) * W * .5,
-        y: H / 2 + (Math.random() - .5) * H * .5,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        r: Math.random() * 1.8 + .4,
-        alpha: Math.random() * .5 + .2,
-        fade: Math.random() * .003 + .001,
-        color: Math.random() > .6
-          ? `17,15,255`
-          : Math.random() > .5 ? `188,162,255` : `255,255,255`,
+    // Distant explosions — slow, large, very faint
+    const explosions = []
+    function spawnExplosion() {
+      explosions.push({
+        x:      Math.random() * W,
+        y:      H * 0.3 + Math.random() * H * 0.4,
+        r:      0,
+        maxR:   Math.random() * 60 + 30,
+        speed:  Math.random() * 0.4 + 0.2,
+        alpha:  0.25,
+        rings:  Math.floor(Math.random() * 2) + 1,
       })
     }
+    spawnExplosion()
 
-    // Seed initial particles
-    for (let i = 0; i < 60; i++) spawnParticle()
-    spawnRing()
+    // Scan lines — subtle horizontal light streaks
+    const scanLines = Array.from({ length: 3 }, () => ({
+      y:     Math.random() * H,
+      speed: Math.random() * 0.3 + 0.1,
+      alpha: Math.random() * 0.04 + 0.01,
+      width: Math.random() * 200 + 100,
+    }))
 
     function draw() {
       ctx.clearRect(0, 0, W, H)
 
-      // Draw rings
-      rings = rings.filter(ring => ring.alpha > 0)
-      for (const ring of rings) {
-        ring.r     += ring.speed
-        ring.alpha  = Math.max(0, .5 * (1 - ring.r / ring.maxR))
-        ctx.beginPath()
-        ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2)
-        ctx.strokeStyle = `rgba(${ring.color}, ${ring.alpha})`
-        ctx.lineWidth   = ring.width
-        ctx.stroke()
+      // ── Distant explosions ────────────────────────────────
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const e = explosions[i]
+        e.r    += e.speed
+        e.alpha = Math.max(0, 0.25 * (1 - e.r / e.maxR))
+        if (e.alpha <= 0) { explosions.splice(i, 1); continue }
+
+        for (let ring = 0; ring < e.rings; ring++) {
+          const rr = e.r * (1 - ring * 0.3)
+          ctx.beginPath()
+          ctx.arc(e.x, e.y, rr, 0, Math.PI * 2)
+          ctx.strokeStyle = `rgba(110,100,255,${e.alpha * (1 - ring * 0.4)})`
+          ctx.lineWidth   = 1
+          ctx.stroke()
+        }
+
+        // Soft glow at centre
+        if (e.r < e.maxR * 0.4) {
+          const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r)
+          g.addColorStop(0, `rgba(180,160,255,${e.alpha * 0.3})`)
+          g.addColorStop(1, 'rgba(0,0,0,0)')
+          ctx.beginPath()
+          ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
+          ctx.fillStyle = g
+          ctx.fill()
+        }
       }
 
-      // Draw particles
-      particles = particles.filter(p => p.alpha > 0)
-      for (const p of particles) {
-        p.x     += p.vx
-        p.y     += p.vy
-        p.alpha -= p.fade
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${p.color}, ${p.alpha})`
-        ctx.fill()
-      }
+      // ── Falling debris ────────────────────────────────────
+      debris.forEach(d => {
+        d.sway   += d.swaySpeed
+        d.x      += d.speedX + Math.sin(d.sway) * 0.3
+        d.y      += d.speedY
 
-      // Spawn new elements on interval
+        if (d.y > H + 10) Object.assign(d, spawnDebris())
+
+        if (d.ember) {
+          // Glowing ember — warm blue/violet dot
+          ctx.beginPath()
+          ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(150,130,255,${d.alpha})`
+          ctx.fill()
+        } else {
+          // Ash flake — tiny rectangle
+          ctx.fillStyle = `rgba(180,180,220,${d.alpha * 0.6})`
+          ctx.fillRect(d.x, d.y, d.size * 0.8, d.size * 1.5)
+        }
+      })
+
+      // ── Subtle scan lines ─────────────────────────────────
+      scanLines.forEach(sl => {
+        sl.y += sl.speed
+        if (sl.y > H) sl.y = -20
+        const g = ctx.createLinearGradient(0, sl.y, sl.width, sl.y)
+        g.addColorStop(0, 'rgba(0,0,0,0)')
+        g.addColorStop(0.5, `rgba(180,160,255,${sl.alpha})`)
+        g.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = g
+        ctx.fillRect(0, sl.y, sl.width, 1)
+      })
+
       frame++
-      if (frame % 90 === 0)  spawnRing()
-      if (frame % 12 === 0)  spawnParticle()
-      if (particles.length < 30) for (let i = 0; i < 5; i++) spawnParticle()
+      if (frame % 150 === 0) spawnExplosion()
 
       animId = requestAnimationFrame(draw)
     }
 
     draw()
-
     return () => {
       window.removeEventListener('resize', resize)
       cancelAnimationFrame(animId)
@@ -101,15 +134,9 @@ export default function BattleBg() {
   }, [])
 
   return (
-    <canvas
-      ref={ref}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: 'none',
-        opacity: .55,
-      }}
-    />
+    <canvas ref={ref} style={{
+      position: 'fixed', inset: 0, zIndex: -1,
+      pointerEvents: 'none', opacity: 0.6,
+    }} />
   )
 }
