@@ -124,21 +124,3 @@ body::after {
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* ── Shockwave rings ── */
-@keyframes ring-expand {
-  0%   { transform: scale(0);   opacity: .6; }
-  60%  { opacity: .3; }
-  100% { transform: scale(4.5); opacity: 0; }
-}
-@keyframes ring-expand2 {
-  0%   { transform: scale(0);   opacity: .4; }
-  100% { transform: scale(6);   opacity: 0; }
-}
-.war-ring {
-  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
-  border: 1.5px solid rgba(17,15,255,.5);
-  animation: ring-expand 6s ease-out infinite;
-}
-.war-ring:nth-child(2) { animation: ring-expand  6s ease-out 2s  infinite; border-color: rgba(188,162,255,.4); }
-.war-ring:nth-child(3) { animation: ring-expand2 8s ease-out 4s  infinite; border-color: rgba(17,15,255,.25); }
-.war-ring:nth-child(4) { animation: ring-expand  7s ease-out 1s  infinite; border-color: rgba(188,162,255,.2); }

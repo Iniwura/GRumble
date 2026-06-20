@@ -4,6 +4,7 @@ import RoundFeed    from './components/RoundFeed.jsx'
 import GameCard     from './components/GameCard.jsx'
 import CreateProfile from './components/CreateProfile.jsx'
 import Profile      from './components/Profile.jsx'
+import BattleBg from './components/BattleBg.jsx'
 import { readContract, writeContract, waitTx, CHAIN_ID, NET } from './lib/gl.js'
 import { CONTRACT_ADDR, FAUCET_URL, sh, weiToGen, genToWei } from './lib/config.js'
 
@@ -195,13 +196,6 @@ export default function App() {
 
   return (
     <div style={{ position:'relative', zIndex:1, minHeight:'100vh' }}>
-
-      {/* War shockwave rings — background motion */}
-      <div className="war-ring" style={{ width:400, height:400, top:'calc(50% - 200px)', left:'calc(50% - 200px)' }} />
-      <div className="war-ring" style={{ width:400, height:400, top:'calc(50% - 200px)', left:'calc(50% - 200px)' }} />
-      <div className="war-ring" style={{ width:400, height:400, top:'calc(50% - 200px)', left:'calc(50% - 200px)' }} />
-      <div className="war-ring" style={{ width:600, height:600, top:'calc(50% - 300px)', left:'calc(50% - 300px)' }} />
-
       {/* HEADER */}
       <header style={{ position:'sticky',top:0,zIndex:100,height:58,display:'flex',alignItems:'center',gap:14,padding:'0 clamp(1rem,4vw,2.5rem)',background:'rgba(4,4,15,.92)',backdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)' }}>
         <div style={{ display:'flex',alignItems:'center',gap:10,cursor:'pointer' }} onClick={() => setView('lobby')}>
