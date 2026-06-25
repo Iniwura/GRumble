@@ -1,4 +1,4 @@
-export const CONTRACT_ADDR = '0x8F33aCb564026b6F89648c054802200c17a41f32'
+export const CONTRACT_ADDR = '0x9CB2Cc1916BcF97aa600e6026ac2C01F9c97122B'
 export const sh = a => a?.length > 10 ? a.slice(0,6) + '..' + a.slice(-4) : (a || '')
 
 export const FAUCET_URL = 'https://testnet-faucet.genlayer.foundation'
