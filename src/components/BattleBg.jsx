@@ -17,7 +17,7 @@ export default function BattleBg() {
     resize()
 
     // Falling ash + embers
-    const debris = Array.from({ length: 80 }, () => makeDebris(true))
+    const debris = Array.from({ length: 140 }, () => makeDebris(true))
 
     function makeDebris(scatter = false) {
       return {
@@ -45,7 +45,7 @@ export default function BattleBg() {
         a:    0.45,
       })
     }
-    addExplosion(); addExplosion()
+    addExplosion(); addExplosion(); addExplosion(); addExplosion()
 
     function draw() {
       ctx.clearRect(0, 0, W, H)
@@ -59,7 +59,7 @@ export default function BattleBg() {
 
         ctx.beginPath()
         ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
-        ctx.strokeStyle = `rgba(130,110,255,${e.a})`
+        ctx.strokeStyle = `rgba(160,130,255,${e.a + 0.15})`
         ctx.lineWidth   = 1.5
         ctx.stroke()
 
@@ -87,7 +87,7 @@ export default function BattleBg() {
         if (d.ember) {
           ctx.beginPath()
           ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(160,140,255,${d.alpha})`
+          ctx.fillStyle = `rgba(180,160,255,${d.alpha + 0.2})`
           ctx.fill()
           // tiny glow ring on ember
           ctx.beginPath()
@@ -102,7 +102,7 @@ export default function BattleBg() {
       })
 
       frame++
-      if (frame % 120 === 0) addExplosion()
+      if (frame % 70 === 0) addExplosion()
 
       animId = requestAnimationFrame(draw)
     }
@@ -122,7 +122,7 @@ export default function BattleBg() {
         inset:         0,
         zIndex:        0,         // above body bg, below all content
         pointerEvents: 'none',
-        opacity:       0.55,
+        opacity:       0.85,
       }}
     />
   )
