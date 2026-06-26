@@ -319,14 +319,14 @@ export default function App() {
               </div>
             </div>
             <div style={{ marginLeft:'auto',display:'flex',gap:8,flexWrap:'wrap' }}>
-              {isCreator && activeGame.status==='WAITING' && (
+              {isCreator && activeGame.status==='WAITING' && (<>
                 <button className="btn" style={{background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.3)',color:'#EF4444',marginRight:8}} disabled={txBusy} onClick={() => handleCancel(activeGame.id)}>
-                    ✕ Cancel & Refund
-                  </button>
+                  ✕ Cancel & Refund
+                </button>
                 <button className="btn btn-blue" disabled={txBusy} onClick={() => handleStart(activeGame.id)}>
                   {txBusy ? <span className="spin-el" /> : '⚔ Start GRumble'}
                 </button>
-              )}
+              </>)}
               {activeGame.status==='WAITING' && !isInGame && (
                 <button className="btn btn-navy" disabled={txBusy} onClick={() => handleJoin(activeGame.id)}>
                   Join FREE
