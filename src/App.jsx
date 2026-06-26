@@ -173,6 +173,16 @@ export default function App() {
     await loadGame(id)
   })
 
+  const handleCancel = (id) => tx('cancel', async () => {
+    if (!window.confirm('Cancel this GRumble and recover your GEN?')) return
+    const hash = await writeContract(CONTRACT_ADDR, account, 'cancel_game', [id])
+    notify('Cancelling GRumble...', 'ok')
+    await waitTx(hash, () => notify('Finalising...', 'ok'))
+    notify('GRumble cancelled — GEN refunded.', 'ok')
+    await loadGames()
+    setView('lobby')
+  })
+
   const handleClaim = (id) => tx('claim', async () => {
     const hash = await writeContract(CONTRACT_ADDR, account, 'claim_prize', [id])
     notify('Claiming GEN prize...', 'ok')
@@ -195,7 +205,9 @@ export default function App() {
     : []
 
   return (
-    <div style={{ position:'relative', zIndex:2, minHeight:'100vh' }}>
+    <>
+      <BattleBg />
+      <div style={{ position:'relative', zIndex:2, minHeight:'100vh' }}>
       {/* HEADER */}
       <header style={{ position:'sticky',top:0,zIndex:100,height:58,display:'flex',alignItems:'center',gap:14,padding:'0 clamp(1rem,4vw,2.5rem)',background:'rgba(4,4,15,.92)',backdropFilter:'blur(24px)',borderBottom:'1px solid var(--border)' }}>
         <div style={{ display:'flex',alignItems:'center',gap:10,cursor:'pointer' }} onClick={() => setView('lobby')}>
@@ -308,6 +320,11 @@ export default function App() {
             </div>
             <div style={{ marginLeft:'auto',display:'flex',gap:8,flexWrap:'wrap' }}>
               {isCreator && activeGame.status==='WAITING' && (
+                {activeGame.creator === account && activeGame.status === 'WAITING' && (
+                  <button className="btn" style={{background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.3)',color:'#EF4444',marginRight:8}} disabled={txBusy} onClick={() => handleCancel(activeGame.id)}>
+                    ✕ Cancel & Refund
+                  </button>
+                )}
                 <button className="btn btn-blue" disabled={txBusy} onClick={() => handleStart(activeGame.id)}>
                   {txBusy ? <span className="spin-el" /> : '⚔ Start GRumble'}
                 </button>
@@ -460,5 +477,6 @@ export default function App() {
 
       <Toast msg={toast.msg} type={toast.type} onClear={() => setToast({msg:'',type:'ok'})} />
     </div>
+    </>
   )
 }
